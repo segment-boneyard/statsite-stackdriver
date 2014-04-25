@@ -1,6 +1,6 @@
 {
   "name": "statsite-stackdriver",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "statsite statsd stackdriver sink",
   "dependencies": {
     "stdin": "0.0.1",
