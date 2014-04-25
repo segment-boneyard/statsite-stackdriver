@@ -55,7 +55,9 @@ function send(data, fn) {
 
   if (program.verbose) {
     console.log('stackdriver: sending the following data');
-    console.log(body);
+    data.forEach(function(m){
+      console.log('stackdriver: %s %s %s [%s]', m.name, m.value, m.collected_at, m.instance || 'none');
+    });
   }
 
   request
