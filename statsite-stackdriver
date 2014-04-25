@@ -1,0 +1,105 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var request = require('superagent');
+var program = require('commander');
+var pkg = require('./package');
+var assert = require('assert');
+var stdin = require('stdin');
+var fs = require('fs');
+
+// options
+
+program
+  .version(pkg.version)
+  .option('-k, --key <key>', 'stackdriver api key')
+  .option('-v, --verbose', 'verbose output')
+  .parse(process.argv);
+
+// key
+
+assert(program.key, '--key required');
+
+// read
+
+stdin(function(str){
+  var data = str.split('\n').filter(blanks).map(parse);
+
+  if (!data.length) {
+    console.log('stackdriver: nothing to send');
+    process.exit(0);
+  }
+
+  console.log('stackdriver: sending batch of %s metrics', data.length);
+
+  send(data, function(err){
+    if (err) throw err;
+    console.log('stackdriver: send complete');
+    process.exit(0);
+  });
+});
+
+/**
+ * Send the batch data to stackdriver.
+ */
+
+function send(data, fn) {
+  var body = {
+    timestamp: Math.floor(Date.now() / 1000),
+    proto_version: 1,
+    data: data
+  };
+
+  if (program.verbose) {
+    console.log('stackdriver: sending the following data');
+    console.log(body);
+  }
+
+  request
+  .post('https://custom-gateway.stackdriver.com/v1/custom')
+  .send(body)
+  .set('x-stackdriver-apikey', program.key)
+  .end(function(err, res){
+    if (err) return fn(err);
+    if (res.error) return fn(new Error(res.status + ': ' + res.text));
+    fn();
+  });
+}
+
+/**
+ * Parse metric string "<name>|<value>|<timestamp>"
+ * with optional hostname segment wrapped with [ ].
+ */
+
+function parse(metric) {
+  var parts = metric.split('|');
+  var name = parts[0];
+  var val = parseFloat(parts[1]);
+  var at = parseInt(parts[2], 10);
+
+  var msg = {
+    name: name,
+    value: val,
+    collected_at: at
+  };
+
+  var segs = name.split('.');
+  if ('[' == segs[1][0]) {
+    msg.instance = segs[1].slice(1, -1);
+    segs.splice(1, 1);
+    msg.name = segs.join('.');
+  }
+
+  return msg;
+}
+
+/**
+ * Blanks filter.
+ */
+
+function blanks(str) {
+  return str.trim() != '';
+}

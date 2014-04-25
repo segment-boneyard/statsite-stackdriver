@@ -1,0 +1,13 @@
+{
+  "name": "statsite-stackdriver",
+  "version": "0.0.1",
+  "description": "statsite statsd stackdriver sink",
+  "dependencies": {
+    "stdin": "0.0.1",
+    "commander": "~2.2.0",
+    "superagent": "~0.17.0"
+  },
+  "bin": {
+    "statsite-stackdriver": "statsite-stackdriver"
+  }
+}
