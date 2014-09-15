@@ -23,6 +23,10 @@ program
 
 assert(program.key, '--key required');
 
+// annotations
+
+var events = require('stackdriver-event')(program.key);
+
 // read
 
 stdin(function(str){
@@ -34,6 +38,14 @@ stdin(function(str){
   }
 
   console.log('stackdriver: sending batch of %s metrics', data.length);
+
+  str.split('\n').filter(annotations).map(parseAnnotation).forEach(function(data){
+    console.log(data);
+    console.log('stackdriver: sending annotation %s', data.value);
+    events.annotate(data.value, function(err){
+      if (!err) console.error('failed to send annotation: %s', err)
+    })
+  })
 
   send(data, function(err){
     if (err) throw err;
@@ -96,6 +108,33 @@ function parse(metric) {
   }
 
   return msg;
+}
+
+/**
+ * Parse annotation string "<name>|<value>|<timestamp>".
+ */
+
+function parseAnnotation(metric) {
+  var parts = metric.split('|');
+  var name = parts[0];
+  var val = parts[1];
+  var at = parseInt(parts[2], 10);
+
+  var msg = {
+    name: name,
+    value: val,
+    collected_at: at
+  };
+
+  return msg;
+}
+
+/**
+ * Filter annotation.
+ */
+
+function annotations(str) {
+  return 0 == str.indexOf('annotations.');
 }
 
 /**

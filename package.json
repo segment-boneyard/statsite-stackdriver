@@ -5,7 +5,8 @@
   "dependencies": {
     "stdin": "0.0.1",
     "commander": "~2.2.0",
-    "superagent": "~0.17.0"
+    "superagent": "~0.17.0",
+    "stackdriver-event": "0.0.1"
   },
   "bin": {
     "statsite-stackdriver": "statsite-stackdriver"
