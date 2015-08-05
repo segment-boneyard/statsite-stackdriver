@@ -101,11 +101,15 @@ function parse(metric) {
   };
 
   var segs = name.split('.');
-  if ('[' == segs[1][0]) {
-    msg.instance = segs[1].slice(1, -1);
-    segs.splice(1, 1);
-    msg.name = segs.join('.');
-  }
+
+  segs.some(function(s, i){
+    if ('[' == s[0]){
+      msg.instance = s.slice(1, -1);
+      segs.splice(i, 1);
+      msg.name = segs.join('.');
+      return true;
+    }
+  });
 
   return msg;
 }
